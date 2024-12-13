@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 import httpx
 
 with open("token") as f:
-    BOT_TOKEN = f.read()
+    BOT_TOKEN = f.read().strip()
 
 app = FastAPI()
 http_client = httpx.AsyncClient(timeout=30)
