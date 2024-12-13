@@ -9,7 +9,7 @@ http_client = httpx.AsyncClient(timeout=30)
 
 # Replace with your bot's token
 TELEGRAM_API_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
-WEB_SERVER_URL = "cossmo@alwaysdata.net:8886"
+WEB_SERVER_URL = "cossmo@alwaysdata.net:8443"
 WEB_HOOK_SERVER_ENDPOINT = WEB_SERVER_URL + "/handle_webhook"
 
 
