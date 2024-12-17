@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 import httpx
 import asyncio
-
+import time
 
 with open("token") as f:
     BOT_TOKEN = f.read().strip()
@@ -14,7 +14,7 @@ TELEGRAM_API_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
 WEB_SERVER_URL = "cossmo.alwaysdata.net"
 WEB_HOOK_SERVER_ENDPOINT = WEB_SERVER_URL + "/handle_webhook"
 
-
+MAX_TIME = 60
 def get_send_msg_url(chat_id:int):
     return f"{TELEGRAM_API_URL}/sendMessage?chat_id={chat_id}&text="
 
@@ -55,12 +55,17 @@ async def set_webhook():
 
 @app.post("/handle_webhook")
 async def handle_webhook(request: Request):
-    return {"status": "OK"}
     def long_function(n):
+        st_time = time.time()
         result = 0
 
         for i in range(10 ** n):
+            if i % 100000 == 0:
+                end_time = time.time()
+                if end_time-st_time > MAX_TIME:
+                    return -1
             result += 1
+
         return result
     """
     Handle incoming Telegram messages.
@@ -72,6 +77,8 @@ async def handle_webhook(request: Request):
         val = int(text)
         await send_msg(f"Вы написали {val}, мы работаем...", chat_id)
         result = await asyncio.to_thread(long_function, val)
+        if result == -1:
+            await send_msg(f"Ответ на {val}: время работы превышено", chat_id)
         await send_msg(f"Ответ на {val}: {result}", chat_id)
         return {"status": "OK"}
     except ValueError:
