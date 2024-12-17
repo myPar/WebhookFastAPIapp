@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 import httpx
-import aiomisc
+import asyncio
 
 
 with open("token") as f:
@@ -55,7 +55,6 @@ async def set_webhook():
 
 @app.post("/handle_webhook")
 async def handle_webhook(request: Request):
-    @aiomisc.threaded_separate
     def long_function(n):
         result = 0
 
@@ -71,7 +70,7 @@ async def handle_webhook(request: Request):
     try:
         val = int(text)
         await send_msg(f"Вы написали {val}, мы работаем...", chat_id)
-        result = await long_function(val)
+        result = await asyncio.to_thread(long_function(val))
         await send_msg(f"Ответ на {val}: {result}", chat_id)
         return {"status": "OK"}
     except ValueError:
