@@ -60,7 +60,6 @@ async def set_webhook():
 
 @app.post("/handle_webhook")
 async def handle_webhook(request: Request):
-    return {"status": "OK"}
     """
     Handle incoming Telegram messages.
     """
