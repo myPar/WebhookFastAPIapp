@@ -10,7 +10,7 @@ with open("token") as f:
 
 app = FastAPI()
 http_client = httpx.AsyncClient(timeout=30)
-
+executor = ThreadPoolExecutor(max_workers=20)
 # Replace with your bot's token
 TELEGRAM_API_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
 WEB_SERVER_URL = "cossmo.alwaysdata.net"
@@ -85,8 +85,7 @@ async def handle_webhook(request: Request):
     text = data["message"]["text"]
     try:
         val = int(text)
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            executor.submit(routine, val, chat_id)
+        executor.submit(routine, val, chat_id)
         return {"status": "OK"}
     except ValueError:
         await send_msg(f"Некорректное число: {text}", chat_id)
