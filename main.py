@@ -1,3 +1,5 @@
+from concurrent.futures import ThreadPoolExecutor
+
 from fastapi import FastAPI, Request
 import httpx
 import asyncio
@@ -52,9 +54,7 @@ async def set_webhook():
     )
     print(f"Webhook set: {response.json()}")
 
-
-@app.post("/handle_webhook")
-async def handle_webhook(request: Request):
+async def routine(val, chat_id):
     def long_function(n):
         st_time = time.time()
         result = 0
@@ -67,6 +67,16 @@ async def handle_webhook(request: Request):
             result += 1
 
         return result
+
+    await send_msg(f"Вы написали {val}, мы работаем...", chat_id)
+    result = long_function(val)
+    if result == -1:
+        await send_msg(f"Ответ на {val}: время работы превышено", chat_id)
+    await send_msg(f"Ответ на {val}: {result}", chat_id)
+
+@app.post("/handle_webhook")
+async def handle_webhook(request: Request):
+
     """
     Handle incoming Telegram messages.
     """
@@ -75,11 +85,8 @@ async def handle_webhook(request: Request):
     text = data["message"]["text"]
     try:
         val = int(text)
-        await send_msg(f"Вы написали {val}, мы работаем...", chat_id)
-        result = await asyncio.to_thread(long_function, val)
-        if result == -1:
-            await send_msg(f"Ответ на {val}: время работы превышено", chat_id)
-        await send_msg(f"Ответ на {val}: {result}", chat_id)
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            executor.submit(routine, val, chat_id)
         return {"status": "OK"}
     except ValueError:
         await send_msg(f"Некорректное число: {text}", chat_id)
