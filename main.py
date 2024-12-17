@@ -25,6 +25,9 @@ async def send_msg(msg: str, chat_id:int):
     url = get_send_msg_url(chat_id)
     await http_client.get(url, params={'chat_id': chat_id, 'text':msg})
 
+def send_msg_sync(msg: str, chat_id:int):
+    url = get_send_msg_url(chat_id)
+    httpx.get(url, params={'chat_id': chat_id, 'text': msg})
 
 def get_telegram_webhook_url():
     return f"{TELEGRAM_API_URL}/setWebhook"
@@ -57,10 +60,11 @@ async def set_webhook():
 
 @app.post("/handle_webhook")
 async def handle_webhook(request: Request):
+    return {"status": "OK"}
     """
     Handle incoming Telegram messages.
     """
-    async def long_function(n, val, chat_id):
+    def long_function(n, val, chat_id):
         st_time = time.time()
         result = 0
 
@@ -68,10 +72,10 @@ async def handle_webhook(request: Request):
             if i % 100000 == 0:
                 end_time = time.time()
                 if end_time-st_time > MAX_TIME:
-                    await send_msg(f"Ответ на {val}: время работы превышено", chat_id)
+                    send_msg_sync(f"Ответ на {val}: время работы превышено", chat_id)
                     return
             result += 1
-        await send_msg(f"Ответ на {val}: {result}", chat_id)
+        send_msg_sync(f"Ответ на {val}: {result}", chat_id)
 
     data = await request.json()
     chat_id = data["message"]["chat"]["id"]
