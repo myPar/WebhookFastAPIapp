@@ -63,7 +63,7 @@ async def handle_webhook(request: Request):
     """
     Handle incoming Telegram messages.
     """
-    def long_function(n, val, chat_id):
+    def long_function(n, chat_id):
         st_time = time.time()
         result = 0
 
@@ -71,10 +71,10 @@ async def handle_webhook(request: Request):
             if i % 100000 == 0:
                 end_time = time.time()
                 if end_time-st_time > MAX_TIME:
-                    send_msg_sync(f"Ответ на {val}: время работы превышено", chat_id)
+                    send_msg_sync(f"Ответ на {n}: время работы превышено", chat_id)
                     return
             result += 1
-        send_msg_sync(f"Ответ на {val}: {result}", chat_id)
+        send_msg_sync(f"Ответ на {n}: {result}", chat_id)
 
     data = await request.json()
     chat_id = data["message"]["chat"]["id"]
