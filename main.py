@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Request
 import httpx
+import aiomisc
+
 
 with open("token") as f:
     BOT_TOKEN = f.read().strip()
@@ -9,7 +11,7 @@ http_client = httpx.AsyncClient(timeout=30)
 
 # Replace with your bot's token
 TELEGRAM_API_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
-WEB_SERVER_URL = "cossmo@alwaysdata.net:8443"
+WEB_SERVER_URL = "cossmo.alwaysdata.net"
 WEB_HOOK_SERVER_ENDPOINT = WEB_SERVER_URL + "/handle_webhook"
 
 
@@ -17,9 +19,9 @@ def get_send_msg_url(chat_id:int):
     return f"{TELEGRAM_API_URL}/sendMessage?chat_id={chat_id}&text="
 
 
-async def send_msg(msg:str, chat_id:int):
+async def send_msg(msg: str, chat_id:int):
     url = get_send_msg_url(chat_id)
-    await http_client.get(url, params={'chat_id':chat_id, 'text':msg})
+    await http_client.get(url, params={'chat_id': chat_id, 'text':msg})
 
 
 def get_telegram_webhook_url():
@@ -53,6 +55,7 @@ async def set_webhook():
 
 @app.post("/handle_webhook")
 async def handle_webhook(request: Request):
+    @aiomisc.threaded
     def long_function(n):
         result = 0
 
@@ -68,7 +71,7 @@ async def handle_webhook(request: Request):
     try:
         val = int(text)
         await send_msg(f"Вы написали {val}, мы работаем...", chat_id)
-        result = long_function(val)
+        result = await long_function(val)
         await send_msg(f"Ответ на {val}: {result}", chat_id)
         return {"status": "OK"}
     except ValueError:
