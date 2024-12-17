@@ -54,8 +54,13 @@ async def set_webhook():
     )
     print(f"Webhook set: {response.json()}")
 
-async def routine(val, chat_id):
-    def long_function(n):
+
+@app.post("/handle_webhook")
+async def handle_webhook(request: Request):
+    """
+    Handle incoming Telegram messages.
+    """
+    async def long_function(n, val, chat_id):
         st_time = time.time()
         result = 0
 
@@ -63,29 +68,19 @@ async def routine(val, chat_id):
             if i % 100000 == 0:
                 end_time = time.time()
                 if end_time-st_time > MAX_TIME:
-                    return -1
+                    await send_msg(f"Ответ на {val}: время работы превышено", chat_id)
+                    return
             result += 1
+        await send_msg(f"Ответ на {val}: {result}", chat_id)
 
-        return result
-
-    await send_msg(f"Вы написали {val}, мы работаем...", chat_id)
-    result = long_function(val)
-    if result == -1:
-        await send_msg(f"Ответ на {val}: время работы превышено", chat_id)
-    await send_msg(f"Ответ на {val}: {result}", chat_id)
-
-@app.post("/handle_webhook")
-async def handle_webhook(request: Request):
-
-    """
-    Handle incoming Telegram messages.
-    """
     data = await request.json()
     chat_id = data["message"]["chat"]["id"]
     text = data["message"]["text"]
     try:
         val = int(text)
-        executor.submit(routine, val, chat_id)
+        await send_msg(f"Вы написали {val}, мы работаем...", chat_id)
+        asyncio.create_task(asyncio.to_thread(long_function, val, chat_id))
+
         return {"status": "OK"}
     except ValueError:
         await send_msg(f"Некорректное число: {text}", chat_id)
