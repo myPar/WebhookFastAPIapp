@@ -70,7 +70,7 @@ async def handle_webhook(request: Request):
     try:
         val = int(text)
         await send_msg(f"Вы написали {val}, мы работаем...", chat_id)
-        result = await asyncio.to_thread(long_function(val))
+        result = await asyncio.to_thread(long_function, val)
         await send_msg(f"Ответ на {val}: {result}", chat_id)
         return {"status": "OK"}
     except ValueError:
